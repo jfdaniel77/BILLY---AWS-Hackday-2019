@@ -15,7 +15,7 @@ func main() {
 	logger := logrus.WithField("App", "Hackday2019")
 
 	awsCfg := &aws.Config{
-		Region: aws.String("ap-southeast-1"),
+		Region: aws.String("us-east-1"),
 	}
 
 	awsSess, err := session.NewSession(awsCfg)
@@ -32,8 +32,8 @@ func main() {
 	}
 
 	queryMgr := queries.CreateQueryMgr(logger,
-		awsSess, "TODO",
-		rConn, "hackday.updates", 25 * time.Hour)
+		awsSess, "hackday-bucket", "images/",
+		rConn, "hackday.updates", 25*time.Hour)
 
 	clientApi := client_api.CreateClientAPI(logger, queryMgr, ":8080")
 	clientApi.RegisterEndpoints()
@@ -46,7 +46,7 @@ func main() {
 
 func connectToRedis(logger *logrus.Entry) (*redis.Client, error) {
 	// TODO: Change this
-	hostname := "127.0.0.1:6379"
+	hostname := "redis:6379"
 
 	redisConn := redis.NewClient(&redis.Options{
 		Addr:     hostname,

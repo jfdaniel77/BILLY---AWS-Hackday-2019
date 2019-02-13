@@ -1,8 +1,11 @@
 package queries
 
 import (
+	"bytes"
 	"encoding/json"
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/go-redis/redis"
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
@@ -13,46 +16,46 @@ import (
 type QueryMgrCtx struct {
 	logger *logrus.Entry
 
-	awsSess *session.Session
-	s3Bucket string
+	awsSess           *session.Session
+	s3Bucket          string
+	s3bucketUploadDir string
 
-	rConn *redis.Client
+	rConn          *redis.Client
 	publishChannel string
-	dataDuration time.Duration
+	dataDuration   time.Duration
 
 	waitMutex sync.Mutex
-	waitMap map[string]chan *QueryResult
+	waitMap   map[string]chan *QueryResult
 }
 
 type QueryMgr interface {
-	Submit(uploadData []byte, contentType string) (string, error)
+	Submit(uploadData []byte) (string, error)
 	Update(upd *QueryUpdate) error
 	Query(requestId string, timeout time.Duration) (*QueryResult, error)
 }
 
 type QueryUpdate struct {
 	RequestID string `json:"request_id"`
-	Data string `json:"data"` // <- TODO
+	Data      string `json:"data"` // <- TODO
 }
 
 type QueryResult struct {
 	Success bool
-	Error string
-	Data string `json:"data"` // <- TODO
+	Error   string
+	Data    string `json:"data"` // <- TODO
 }
 
 const ErrTimeout = "TIMEOUT"
 
-const S3_BUCKET = ""
-
 func CreateQueryMgr(logger *logrus.Entry,
-	awsSess *session.Session, s3Bucket string,
+	awsSess *session.Session, s3Bucket string, s3bucketUploadDir string,
 	rConn *redis.Client, publishChannel string, dataDuration time.Duration) QueryMgr {
 
 	ctx := new(QueryMgrCtx)
 	ctx.logger = logger.WithField("Service", "QueryManager")
 	ctx.awsSess = awsSess
 	ctx.s3Bucket = s3Bucket
+	ctx.s3bucketUploadDir = s3bucketUploadDir
 	ctx.rConn = rConn
 	ctx.publishChannel = publishChannel
 	ctx.dataDuration = dataDuration
@@ -63,22 +66,18 @@ func CreateQueryMgr(logger *logrus.Entry,
 	return ctx
 }
 
-func (ctx *QueryMgrCtx) Submit(uploadData []byte, contentType string) (string, error) {
+func (ctx *QueryMgrCtx) Submit(uploadData []byte) (string, error) {
 	requestId := uuid.New().String()
 
-	// TODO
-	//_, err := s3.New(s).PutObject(&s3.PutObjectInput{
-	//	Bucket:               aws.String(ctx.s3Bucket),
-	//	Key:                  aws.String(requestId),
-	//	ACL:                  aws.String("private"),
-	//	Body:                 bytes.NewReader(uploadData),
-	//	ContentLength:        aws.Int64(int64(len(uploadData))),
-	//	ContentType:          aws.String(contentType),
-	//	ContentDisposition:   aws.String("attachment"),
-	//	ServerSideEncryption: aws.String("AES256"),
-	//})
-
-	var err error
+	_, err := s3.New(ctx.awsSess).PutObject(&s3.PutObjectInput{
+		Bucket:               aws.String(ctx.s3Bucket),
+		Key:                  aws.String(ctx.s3bucketUploadDir + requestId),
+		ACL:                  aws.String("private"),
+		Body:                 bytes.NewReader(uploadData),
+		ContentLength:        aws.Int64(int64(len(uploadData))),
+		ContentDisposition:   aws.String("attachment"),
+		ServerSideEncryption: aws.String("AES256"),
+	})
 
 	return requestId, err
 }
@@ -116,21 +115,21 @@ func (ctx *QueryMgrCtx) Query(requestId string, timeout time.Duration) (*QueryRe
 		waiter := ctx.registerWaiter(requestId)
 
 		select {
-		case <- time.After(timeout):
+		case <-time.After(timeout):
 			ctx.deregisterWaiter(requestId)
 			return &QueryResult{
 				Success: false,
-				Error: ErrTimeout,
+				Error:   ErrTimeout,
 			}, nil
 
-		case res := <- waiter:
+		case res := <-waiter:
 			return res, nil
 		}
 	}
 
 	return &QueryResult{
 		Success: true,
-		Data: data,
+		Data:    data,
 	}, nil
 }
 
@@ -142,13 +141,13 @@ func (ctx *QueryMgrCtx) registerWaiter(requestId string) chan *QueryResult {
 	if exists {
 		waiter <- &QueryResult{
 			Success: false,
-			Error: ErrTimeout,
+			Error:   ErrTimeout,
 		}
 		close(waiter)
 	}
 
 	waiter = make(chan *QueryResult)
-	ctx.waitMap[requestId] =  waiter
+	ctx.waitMap[requestId] = waiter
 
 	return waiter
 }
@@ -161,7 +160,7 @@ func (ctx *QueryMgrCtx) deregisterWaiter(requestId string) {
 	if exists {
 		waiter <- &QueryResult{
 			Success: false,
-			Error: ErrTimeout,
+			Error:   ErrTimeout,
 		}
 		close(waiter)
 	}
@@ -187,7 +186,7 @@ func (ctx *QueryMgrCtx) releaseListeners(requestId string) {
 		data, _ := ctx.readFromRedis(requestId)
 		waiter <- &QueryResult{
 			Success: data != "",
-			Data: data,
+			Data:    data,
 		}
 		close(waiter)
 

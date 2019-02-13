@@ -1,0 +1,9 @@
+version: "3.1"
+
+# This is for building only.
+
+services:
+  backend:
+    image: 224789897147.dkr.ecr.us-east-1.amazonaws.com/hackday2019/backend:latest
+    build:
+      context: .
