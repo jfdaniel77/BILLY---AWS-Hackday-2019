@@ -10,7 +10,7 @@ type ServerAPICtx struct {
 	logger *logrus.Entry
 
 	host string
-	mux *http.ServeMux
+	mux  *http.ServeMux
 
 	queryMgr queries.QueryMgr
 }
@@ -37,19 +37,42 @@ func (ctx *ServerAPICtx) Start() {
 }
 
 func (ctx *ServerAPICtx) handleResult(w http.ResponseWriter, r *http.Request) {
-	// For now, it is a GET only.
-	qry := r.URL.Query()
-	requestID := qry["requestID"]
-	data := qry["data"]
+	var requestID string
+	var data string
+
+	if r.Method == "POST" {
+		err := r.ParseForm()
+		if err != nil {
+			w.WriteHeader(500)
+			w.Write([]byte(err.Error()))
+			ctx.logger.WithError(err).Error("Could not parse POST Form")
+			return
+		}
+
+		requestID = r.FormValue("requestID")
+		data = r.FormValue("data")
+
+	} else if r.Method == "GET" {
+		// For now, it is a GET only.
+		qry := r.URL.Query()
+		requestID = qry["requestID"][0]
+		data = qry["data"][0]
+	} else {
+		w.WriteHeader(405)
+		w.Write([]byte("GET or POST expected."))
+		ctx.logger.WithField("Method", r.Method).Error("GET or POST expected.")
+		return
+	}
 
 	err := ctx.queryMgr.Update(&queries.QueryUpdate{
-		RequestID: requestID[0],
-		Data: data[0],
+		RequestID: requestID,
+		Data:      data,
 	})
 
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte(err.Error()))
+		ctx.logger.WithError(err).Error("Could not parse POST Form")
 	} else {
 		w.WriteHeader(200)
 		w.Write([]byte("OK"))
