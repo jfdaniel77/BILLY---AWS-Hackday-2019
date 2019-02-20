@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="Agus Ekanurdi">
+    <meta name="generator" content="">
+    <title>Billy</title>
+
+	<!-- Bootstrap core CSS -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.0/css/bootstrap.min.css" integrity="sha384-PDle/QlgIONtM1aqA2Qemk5gPOE7wFq8+Em+G/hmo5Iq0CCmYZLv3fVRDJ4MMwEA" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="app.css" >
+	<link href="img/favicon.ico" rel="icon" type="image/x-icon" />
+</head>
+<body>
+    <div class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-white border-bottom shadow-sm">
+	<h5 class="my-0 mr-md-auto font-weight-bold">Billy <small class="text-muted">/ Bin It Happily</small></h5>
+	</div>
+	
+	<button onclick="scrollToTop()" id="topBtn" title="Go to top">Top</button>
+
+	<div class="pricing-header px-3 py-3 pt-md-5 pb-md-4 mx-auto text-center">
+		<h1 class="display-4">Bin It</h1>
+		<p class="lead">
+			Scan the garbage for analysis.<br/>
+			<img src="img/camera.png" id="cameraBtn" style="cursor:pointer" />
+		</p>
+		
+		<input id="photo" type="file" accept="image/*" capture="environment" style="display:none">
+		<div id="results" class="alert alert-light" role="alert"></div>
+	</div>
+
+	<div class="container">
+	  <div class="card-deck mb-3 text-center">
+		<div class="card mb-3 shadow-sm">
+		  <div id="ARTTitle" class="card-header">
+			<h4 class="my-0 font-weight-normal">Art Campus</h4>
+		  </div>
+		  <div id="ARTBody" class="card-body">
+            <h1 class="card-title pricing-card-title"><span id="ARTWasteCount"></span> <small class="text-muted">/ waste</small></h1>
+			<ul id="ARTWaste" class="list-unstyled mt-3 mb-4"></ul>
+			<button id="ARTBinBtn" type="button" class="btn btn-lg btn-block btn-primary" onClick="binned('ART')">Binned</button>
+		  </div>
+		</div>
+		<div class="card mb-3 shadow-sm">
+		  <div id="SCIENCETitle" class="card-header">
+			<h4 class="my-0 font-weight-normal">Science Campus</h4>
+		  </div>
+		  <div id="SCIENCEBody" class="card-body">
+            <h1 class="card-title pricing-card-title"><span id="SCIENCEWasteCount"></span> <small class="text-muted">/ waste</small></h1>
+			<ul id="SCIENCEWaste" class="list-unstyled mt-3 mb-4"></ul>
+			<button id="SCIENCEBinBtn" type="button" class="btn btn-lg btn-block btn-primary" onClick="binned('SCIENCE')">Binned</button>
+		  </div>
+		</div>
+		<div class="card mb-3 shadow-sm">
+		  <div id="PSTitle" class="card-header">
+			<h4 class="my-0 font-weight-normal">Plaza Singapura</h4>
+		  </div>
+		  <div id="PSBody" class="card-body">
+            <h1 class="card-title pricing-card-title"><span id="PSWasteCount"></span> <small class="text-muted">/ waste</small></h1>
+			<ul id="PSWaste" class="list-unstyled mt-3 mb-4"></ul>
+			<button id="PSBinBtn" type="button" class="btn btn-lg btn-block btn-primary" onClick="binned('PS')">Binned</button>
+		  </div>
+		</div>
+		<div class="card mb-3 shadow-sm">
+		  <div id="IONTitle" class="card-header">
+			<h4 class="my-0 font-weight-normal">ION Orchard</h4>
+		  </div>
+		  <div id="IONBody" class="card-body">
+            <h1 class="card-title pricing-card-title"><span id="IONWasteCount"></span> <small class="text-muted">/ waste</small></h1>
+			<ul id="IONWaste" class="list-unstyled mt-3 mb-4"></ul>
+			<button id="IONBinBtn" type="button" class="btn btn-lg btn-block btn-primary" onClick="binned('ION')">Binned</button>
+		  </div>
+		</div>
+	</div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="app.js"></script>
+</html>

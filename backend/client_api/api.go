@@ -1,6 +1,7 @@
 package client_api
 
 import (
+	"backend/middleware"
 	"backend/queries"
 	"encoding/json"
 	"github.com/sirupsen/logrus"
@@ -30,8 +31,8 @@ func CreateClientAPI(logger *logrus.Entry, queryMgr queries.QueryMgr, host strin
 }
 
 func (ctx *ClientAPICtx) RegisterEndpoints() {
-	ctx.mux.HandleFunc("/submit", ctx.handleSubmit)
-	ctx.mux.HandleFunc("/query", ctx.handleQuery)
+	ctx.mux.HandleFunc("/submit", middleware.CORSWrapper(ctx.handleSubmit))
+	ctx.mux.HandleFunc("/query", middleware.CORSWrapper(ctx.handleQuery))
 }
 
 func (ctx *ClientAPICtx) Start() {
