@@ -37,7 +37,7 @@ $(document).ready(function () {
 	});
 });
 
-const backendURLPath = 'http://18.204.42.219:8080';
+const backendURLPath = 'https://z1iphroe61.execute-api.us-east-1.amazonaws.com/prod';
 const resizeWidth = 640;
 const resizeHeight = 480;
 const mockLocationKeys = ['ART', 'SCIENCE', 'PS', 'ION'];
@@ -130,6 +130,7 @@ function upload(file) {
 		
 		$.ajax({
 			url: backendURLPath.concat('/submit'),
+            headers: {"Authorization": sessionStorage.getItem(IDTokenSessionKey)},
 			type: 'POST',
 			data: fileData,
 			cache: false,
@@ -157,6 +158,7 @@ function analyzeImage(data){
 function queryResult(){
 	$.ajax({
 		url: backendURLPath.concat('/query?requestID=').concat(queryID),
+        headers: {"Authorization": sessionStorage.getItem(IDTokenSessionKey)},
 		type: 'GET',
         success: function(result) {
             const resultObj = JSON.parse(result);
