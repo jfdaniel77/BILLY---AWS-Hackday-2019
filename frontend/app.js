@@ -208,7 +208,7 @@ function highlightLocation() {
     $('#' + locationKey + "Body").addClass("body-highlight");
 
     $('#' + locationKey + "Waste").empty();
-    $('#' + locationKey + "Waste").append("<li style='text-decoration: underline;'>Identified Waste:</li>");
+    $('#' + locationKey + "Waste").append("<li style='text-decoration: underline;'>Identified Waste Attributes:</li>");
 
     wasteLabels.forEach(function(label) {
         $('#' + locationKey + "Waste").append("<li>" + label + "</li>");
