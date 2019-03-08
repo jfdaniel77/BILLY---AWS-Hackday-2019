@@ -41,8 +41,8 @@ const backendURLPath = 'https://z1iphroe61.execute-api.us-east-1.amazonaws.com/p
 const resizeWidth = 512;
 const resizeHeight = 384;
 const mockLocationKeys = ['ART', 'SCIENCE', 'PS', 'ION'];
-const validObjects = ['Bottle', 'Jar', 'Foil', 'Cup', 'Can', 'Cardboard']
-const validLabels = ['Paper', 'Glass', 'Plastic', 'Tin', 'Aluminium']
+const validObjects = ['Bottle', 'Jar', 'Foil', 'Cup', 'Can', 'Cardboard'];
+const validLabels = ['Paper', 'Glass', 'Plastic', 'Tin', 'Aluminium', 'Metal'];
 let queryID = '';
 let wasteLabels = null;
 let mockWasteData = {
@@ -208,7 +208,7 @@ function highlightLocation() {
     $('#' + locationKey + "Body").addClass("body-highlight");
 
     $('#' + locationKey + "Waste").empty();
-    $('#' + locationKey + "Waste").append("<li style='text-decoration: underline;'>Waste Type:</li>");
+    $('#' + locationKey + "Waste").append("<li style='text-decoration: underline;'>Identified Waste:</li>");
 
     wasteLabels.forEach(function(label) {
         $('#' + locationKey + "Waste").append("<li>" + label + "</li>");
