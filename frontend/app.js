@@ -40,24 +40,8 @@ $(document).ready(function () {
 const backendURLPath = 'https://z1iphroe61.execute-api.us-east-1.amazonaws.com/prod';
 const resizeWidth = 512;
 const resizeHeight = 384;
-const mockLocationKeys = ['ART', 'SCIENCE', 'PS', 'ION'];
 const labels = ['Paper', 'Metal', 'Trash', 'Cardboard', 'Glass', 'Plastic'];
 let queryID = '';
-let wasteLabels = null;
-let mockWasteData = {
-    "ART": {
-        "count": 0
-    },
-    "SCIENCE": {
-        "count": 0
-    },
-    "PS": {
-        "count": 0
-    },
-    "ION": {
-        "count": 0
-    }
-};
 
 $(document).ready(function () {
     $('#cameraBtn').click(function () {
@@ -73,15 +57,7 @@ $(document).ready(function () {
     window.onscroll = function () {
         scrollFunction()
     };
-    calculateWasteStats();
 });
-
-
-function calculateWasteStats() {
-    for (i = 0; i < mockLocationKeys.length; i++) {
-        $('#' + mockLocationKeys[i] + "WasteCount").text(mockWasteData[mockLocationKeys[i]].count);
-    }
-}
 
 function scrollFunction() {
     if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
@@ -164,11 +140,10 @@ function queryResult() {
             if (resultObj['Success']) {
                 $('#results').text('');
                 const predictions = JSON.parse(JSON.parse(resultObj['data']))['predictions'];
-                wasteLabels = [];
-                predictions.forEach(function(prediction){
-                    wasteLabels.push(labels[prediction['predicted_label'] - 1]);
-                });
-                highlightLocation();
+                if (predictions && predictions.length > 0){
+                    $('#wasteType'+predictions[0]['predicted_label']).show();
+                    highlightLocation(predictions[0]['predicted_label']);
+                } else $('#results').text('ERROR: Unidentified waste type!');
             } else {
                 $('#results').text('ERROR: '.concat(resultObj['Error']));
             }
@@ -179,38 +154,9 @@ function queryResult() {
     });
 }
 
-function highlightLocation() {
-    const randomIdx = Math.floor(Math.random() * 4);
-    const locationKey = mockLocationKeys[randomIdx];
-
-    $('#' + locationKey + "Title").addClass("title-highlight");
-    $('#' + locationKey + "Body").addClass("body-highlight");
-    $('#' + locationKey + "BinBtn").show();
-
-    $('#' + locationKey + "Waste").empty();
-    $('#' + locationKey + "Waste").append("<li style='text-decoration: underline;'>Identified Waste Attributes:</li>");
-
-    wasteLabels.forEach(function(label) {
-        $('#' + locationKey + "Waste").append("<li>" + label + "</li>");
-    });
-
+function highlightLocation(id) {
     $('html, body').animate({
-        scrollTop: $('#' + locationKey + "Title").offset().top
-    }, 1000);
-}
-
-function binned(locationKey) {
-    mockWasteData[locationKey].count++;
-
-    calculateWasteStats();
-
-    $('.bin-btn').hide();
-
-    setTimeout(function(){
-        $('#' + locationKey + "Title").removeClass("title-highlight");
-        $('#' + locationKey + "Body").removeClass("body-highlight");
-        $('#' + locationKey + "Waste").empty();
-        scrollToTop();
+        scrollTop: $('#wasteType' + id).offset().top
     }, 1000);
 }
 
