@@ -41,8 +41,7 @@ const backendURLPath = 'https://z1iphroe61.execute-api.us-east-1.amazonaws.com/p
 const resizeWidth = 512;
 const resizeHeight = 384;
 const mockLocationKeys = ['ART', 'SCIENCE', 'PS', 'ION'];
-const validObjects = ['Bottle', 'Jar', 'Foil', 'Cup', 'Can', 'Cardboard'];
-const validLabels = ['Paper', 'Glass', 'Plastic', 'Tin', 'Aluminium', 'Metal'];
+const labels = ['Paper', 'Metal', 'Trash', 'Cardboard', 'Glass', 'Plastic'];
 let queryID = '';
 let wasteLabels = null;
 let mockWasteData = {
@@ -164,8 +163,11 @@ function queryResult() {
             queryID = '';
             if (resultObj['Success']) {
                 $('#results').text('');
-                wasteLabels = JSON.parse(JSON.parse(resultObj['data']).replace(/\'/g, '"'))['Labels'];
-                filterWasteLabels();
+                const predictions = JSON.parse(JSON.parse(resultObj['data']))['predictions'];
+                wasteLabels = [];
+                predictions.forEach(function(prediction){
+                    wasteLabels.push(labels[prediction['predicted_label'] - 1]);
+                });
                 highlightLocation();
             } else {
                 $('#results').text('ERROR: '.concat(resultObj['Error']));
@@ -177,35 +179,13 @@ function queryResult() {
     });
 }
 
-function filterWasteLabels(){
-    let filteredObjects = [];
-    let filteredLabels = [];
-    wasteLabels.forEach(function(label) {
-        const validObject = validObjects.find(function(validData) {
-            return validData == label.Name;
-        });
-        if (typeof validObject !== "undefined")
-            filteredObjects.push(validObject);
-
-        const validLabel = validLabels.find(function(validData) {
-            return validData == label.Name;
-        });
-        if (typeof validLabel !== "undefined")
-            filteredLabels.push(validLabel);
-    });
-
-    wasteLabels = [];
-
-    if (filteredLabels.length == 0 && filteredObjects.length == 0) wasteLabels.push('General Waste');
-    else wasteLabels = filteredLabels.concat(filteredObjects);
-}
-
 function highlightLocation() {
     const randomIdx = Math.floor(Math.random() * 4);
     const locationKey = mockLocationKeys[randomIdx];
 
     $('#' + locationKey + "Title").addClass("title-highlight");
     $('#' + locationKey + "Body").addClass("body-highlight");
+    $('#' + locationKey + "BinBtn").show();
 
     $('#' + locationKey + "Waste").empty();
     $('#' + locationKey + "Waste").append("<li style='text-decoration: underline;'>Identified Waste Attributes:</li>");
@@ -224,9 +204,14 @@ function binned(locationKey) {
 
     calculateWasteStats();
 
-    $('#' + locationKey + "Title").removeClass("title-highlight");
-    $('#' + locationKey + "Body").removeClass("body-highlight");
-    $('#' + locationKey + "Waste").empty();
+    $('.bin-btn').hide();
+
+    setTimeout(function(){
+        $('#' + locationKey + "Title").removeClass("title-highlight");
+        $('#' + locationKey + "Body").removeClass("body-highlight");
+        $('#' + locationKey + "Waste").empty();
+        scrollToTop();
+    }, 1000);
 }
 
 function scrollToTop() {
