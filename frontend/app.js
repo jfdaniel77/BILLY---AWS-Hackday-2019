@@ -160,6 +160,13 @@ function highlightLocation(id) {
     }, 1000);
 }
 
+function binned(){
+    $('.waste-type').each(function(){
+       $(this).hide();
+    });
+    scrollToTop();
+}
+
 function scrollToTop() {
     document.body.scrollTop = 0; // For Safari
     document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
