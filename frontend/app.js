@@ -7,7 +7,15 @@ const AWSCognitoProvider = 'cognito-idp.us-east-1.amazonaws.com/'.concat(AWSCogn
 const AWSCognitoIdentityPoolID = 'us-east-1:1491e474-f9b3-4d19-821b-b6d93466a085';
 const AWSCognitoLoginURL = 'https://embryo-billy.auth.us-east-1.amazoncognito.com/login?response_type=token&client_id=' + AWSCognitoUserPool.ClientId + '&redirect_uri=https://dnx78czn5g853.cloudfront.net';
 
+let AWSCredentials = null;
+
 AWS.config.region = 'us-east-1';
+
+const backendURLPath = 'https://z1iphroe61.execute-api.us-east-1.amazonaws.com/prod';
+const resizeWidth = 512;
+const resizeHeight = 384;
+const labels = ['Metal', 'Paper', 'Glass', 'Cardboard', 'Trash', 'Plastic'];
+let queryID = '';
 
 $(document).ready(function () {
     const url = window.location.href;
@@ -24,27 +32,24 @@ $(document).ready(function () {
     let login = {};
     login[provider] = sessionStorage.getItem(IDTokenSessionKey);
 
-    let credentials = new AWS.CognitoIdentityCredentials({
+    AWSCredentials = new AWS.CognitoIdentityCredentials({
         IdentityPoolId: AWSCognitoIdentityPoolID,
         Logins: login
     });
 
-    credentials.get((error) => {
+    AWSCredentials.get((error) => {
         if (error) {
             sessionStorage.removeItem(IDTokenSessionKey);
             window.location.replace(AWSCognitoLoginURL);
+        } else {
+            configureUIActions();
         }
     });
 });
 
-const backendURLPath = 'https://z1iphroe61.execute-api.us-east-1.amazonaws.com/prod';
-const resizeWidth = 512;
-const resizeHeight = 384;
-const labels = ['Paper', 'Metal', 'Trash', 'Cardboard', 'Glass', 'Plastic'];
-let queryID = '';
-
-$(document).ready(function () {
+function configureUIActions(){
     $('#cameraBtn').click(function () {
+        reset();
         $('#photo').click();
     });
 
@@ -57,7 +62,7 @@ $(document).ready(function () {
     window.onscroll = function () {
         scrollFunction()
     };
-});
+}
 
 function scrollFunction() {
     if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
@@ -96,31 +101,38 @@ function resize(file) {
 }
 
 function upload(file) {
-    if (file) {
-        $('#results').text('Uploading...');
+    AWSCredentials.get((error) => {
+        if (error) {
+            sessionStorage.removeItem(IDTokenSessionKey);
+            window.location.replace(AWSCognitoLoginURL);
+        } else {
+            if (file) {
+                $('#results').text('Uploading...');
 
-        var fileData = new FormData();
-        fileData.append('image', file);
+                var fileData = new FormData();
+                fileData.append('image', file);
 
-        $.ajax({
-            url: backendURLPath.concat('/submit'),
-            headers: {"Authorization": sessionStorage.getItem(IDTokenSessionKey)},
-            type: 'POST',
-            data: fileData,
-            cache: false,
-            contentType: false,
-            processData: false,
-            dataType: 'text',
-            success: function (data) {
-                analyzeImage(data);
-            },
-            error: function () {
-                $('#results').text('ERROR: Failed to upload image!');
+                $.ajax({
+                    url: backendURLPath.concat('/submit'),
+                    headers: {"Authorization": sessionStorage.getItem(IDTokenSessionKey)},
+                    type: 'POST',
+                    data: fileData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    dataType: 'text',
+                    success: function (data) {
+                        analyzeImage(data);
+                    },
+                    error: function () {
+                        $('#results').text('ERROR: Failed to upload image!');
+                    }
+                });
+            } else {
+                $('#results').text('WARN: Nothing to upload.');
             }
-        });
-    } else {
-        $('#results').text('WARN: Nothing to upload.');
-    }
+        }
+    });
 }
 
 function analyzeImage(data) {
@@ -130,41 +142,57 @@ function analyzeImage(data) {
 }
 
 function queryResult() {
-    $.ajax({
-        url: backendURLPath.concat('/query?requestID=').concat(queryID),
-        headers: {"Authorization": sessionStorage.getItem(IDTokenSessionKey)},
-        type: 'GET',
-        success: function (result) {
-            const resultObj = JSON.parse(result);
-            queryID = '';
-            if (resultObj['Success']) {
-                $('#results').text('');
-                const predictions = JSON.parse(JSON.parse(resultObj['data']))['predictions'];
-                if (predictions && predictions.length > 0){
-                    $('#wasteType'+predictions[0]['predicted_label']).show();
-                    highlightLocation(predictions[0]['predicted_label']);
-                } else $('#results').text('ERROR: Unidentified waste type!');
-            } else {
-                $('#results').text('ERROR: '.concat(resultObj['Error']));
-            }
-        },
-        error: function () {
-            queryResult();
+    if (queryID == ''){
+        $('#results').text('ERROR: Missing query ID!');
+        return;
+    }
+
+    AWSCredentials.get((error) => {
+        if (error) {
+            sessionStorage.removeItem(IDTokenSessionKey);
+            window.location.replace(AWSCognitoLoginURL);
+        } else {
+            $.ajax({
+                url: backendURLPath.concat('/query?requestID=').concat(queryID),
+                headers: {"Authorization": sessionStorage.getItem(IDTokenSessionKey)},
+                type: 'GET',
+                success: function (result) {
+                    const resultObj = JSON.parse(result);
+                    queryID = '';
+                    if (resultObj['Success']) {
+                        $('#results').text('');
+                        const predictions = JSON.parse(JSON.parse(resultObj['data']))['predictions'];
+                        if (predictions && predictions.length > 0) {
+                            $('#' + labels[predictions[0]['predicted_label'] - 1]).show();
+                            highlightLocation(labels[predictions[0]['predicted_label'] - 1]);
+                        } else $('#results').text('ERROR: Unidentified waste type!');
+                    } else {
+                        $('#results').text('ERROR: '.concat(resultObj['Error']));
+                    }
+                },
+                error: function () {
+                    queryResult();
+                }
+            });
         }
     });
 }
 
 function highlightLocation(id) {
     $('html, body').animate({
-        scrollTop: $('#wasteType' + id).offset().top
+        scrollTop: $('#' + id).offset().top
     }, 1000);
 }
 
 function binned(){
-    $('.waste-type').each(function(){
-       $(this).hide();
-    });
+    reset();
     scrollToTop();
+}
+
+function reset(){
+    $('.waste-type').each(function(){
+        $(this).hide();
+    });
 }
 
 function scrollToTop() {
