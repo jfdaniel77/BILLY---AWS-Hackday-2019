@@ -1,4 +1,4 @@
-# BILLY - AWS Hackday 2019
+# BILLY (Bin It Happily) - AWS Hackday 2019
 This is repository for Billy. Billy is a prototype that we build for our participation in AWS Hackday 2019.
 
 Billy is an mobile or IoT application that is used in waste management. This application can do object classification so that user is able to know which correct recycle bin to throw it.  In this prototype, we do classification for 6 different type of objects. Those are metal, paper, cardboard, plastic, glass and trash. 
