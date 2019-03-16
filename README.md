@@ -7,21 +7,26 @@ We build this application on AWS infrastructure and the main service we use are 
 
 For training purpose in AWS SageMaker, we are use trash images dataset from https://github.com/garythung/trashnet
 
-Folder description:
-a. backend
-It contains our code for managing request(s) from mobile application/IoT devices.
+Folder description:<br>
+a. backend<br>
+It contains our code for managing and orchestrating request(s) from mobile application/IoT devices.<br>
+<br>
 
-b. dataset
-It contains trash images dataset for training and testing purposes.
+b. dataset<br>
+It contains trash images dataset for training and testing purposes.<br>
+<br>
 
-c. documents
-It contains our documentations including our executive summary and demo video.
+c. documents<br>
+It contains our documentations including our executive summary and demo video.<br>
+<br>
 
-d. frontend
-It contains our code for our prototype of mobile application.
+d. frontend<br>
+It contains our code for our prototype of mobile application.<br>
+<br>
 
-e. lambda
-It contains our code in AWS Lambda to orchestrator process to Amazon Rekognition and Amazon SageMaker.
+e. lambda<br>
+It contains our code in AWS Lambda to orchestrator process to Amazon Rekognition and Amazon SageMaker.<br>
+<br>
 
-f. training
-It contains our code in Jupiter Notebook to build and train our model in Amazon SageMaker
+f. training<br>
+It contains our code in Jupiter Notebook to build and train our model in Amazon SageMaker<br>
