@@ -187,6 +187,24 @@ function highlightLocation(id) {
 function binned(){
     reset();
     scrollToTop();
+
+    $("#postAct1").fadeIn("slow", function() {
+        setTimeout(function(){
+            $('#postAct1').fadeOut("slow", function(){
+                $("#postAct2").fadeIn("slow", function() {
+                    setTimeout(function(){
+                        $('#postAct2').fadeOut("slow", function(){
+                            $("#postAct3").fadeIn("slow", function() {
+                                setTimeout(function(){
+                                    $('#postAct3').fadeOut("slow");
+                                }, 2000);
+                            });
+                        });
+                    }, 2000);
+                });
+            });
+        }, 2000);
+    });
 }
 
 function reset(){
