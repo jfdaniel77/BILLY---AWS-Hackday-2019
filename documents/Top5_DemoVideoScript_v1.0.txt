@@ -10,8 +10,7 @@ It is secured by AWS Cognito end-to-end.
 An orchestrator app has been deployed in AWS ECS together with Redis and AWS API Gateway as proxy.
 Captured images will be sent to the orchestrator app to get a unique ID and to be added into AWS S3 bucket.
 
-An event is triggered to a Lambda function every time an image is added into the AWS S3 bucket.
-The Lambda function calls AWS Rekognition to detect objects in the uploaded image and forwards the labels to AWS SageMaker. 
+A Lambda function will be triggered to call AWS Rekognition to detect objects in the uploaded image and sends the labels to AWS SageMaker. 
 The waste category from AWS SageMaker will be stored in Redis. 
 The front end channel will poll the result of waste recognition and display the waste category accordingly. 
 
@@ -24,4 +23,4 @@ Each registered users will have access to a mobile application that displays:
 2. Collected points
 The registered users will be able to configure profile pictures for authentication and also redeem rewards from this page.
 
-Billy will deliver waste management unlike any other.
+Billy will deliver waste management like none before.
